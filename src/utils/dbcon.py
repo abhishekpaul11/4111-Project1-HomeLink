@@ -31,6 +31,21 @@ def runQuery(query:str, args:dict = {}):
         results = conn.execute(sql, args)
         return results
 
+def convert_to_dict(sql_result):
+    """
+    Converts the results of a query to a JSON format.
+
+    Parameters:
+    results (ResultProxy): The result of a query.
+
+    Returns:
+    list: A list of dictionaries, where each dictionary represents a row in the query result.
+    """
+    raw_results = sql_result.all()
+
+    # Convert each row to a dictionary
+    return [dict(row._mapping) for row in raw_results]
+
 def test():
     query = "select * from users limit 5"
     result = runQuery(query)

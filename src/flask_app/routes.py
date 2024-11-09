@@ -1,6 +1,6 @@
 # flask_app/routes.py
-from flask import Blueprint, jsonify, request
-from utils.dbcon import runQuery
+from flask import Blueprint, json, jsonify, request
+from utils.dbcon import runQuery, convert_to_dict
 
 main = Blueprint('main', __name__)
 
@@ -24,8 +24,17 @@ def auth() -> bool:
         return jsonify({'error': 'Username and password are required'}), 400
 
     # Check if the username and password are correct
-    results = runQuery(f"SELECT * FROM users WHERE name = :name AND password = :password", {"name": username, "password": password})
+    sql_result = runQuery(f"SELECT * FROM users WHERE name = :name AND password = :password", {"name": username, "password": password})
+    result = convert_to_dict(sql_result)
 
-    if len(results.all()) == 1:
-        return jsonify({'message': 'Authentication successful'}), 200
+    if len(result)  == 1:
+        return jsonify({'message': 'Authentication successful','user':json.dumps(result[0])}), 200
     return jsonify({'error': 'Authentication failed'}), 401
+
+@main.route('/tenants/apt')
+def get_tenant_apt():
+    sql_result = runQuery("SELECT a.* FROM Users as u, Apartments as a WHERE u.user_id = a.apt_tenant and u.user_id = :user_id", {"user_id": request.args.get('user_id')})
+    result = convert_to_dict(sql_result)
+    if len(result) == 0:
+        return ""
+    return jsonify(result[0])
