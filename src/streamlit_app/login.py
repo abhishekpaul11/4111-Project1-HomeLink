@@ -21,7 +21,7 @@ def check_login(username, password) -> bool:
         return (True, user)
     elif response.status_code == 401:
         return (False, None)
-    return False
+    return (False, None)
 
 def show_login():
     st.title("Login")

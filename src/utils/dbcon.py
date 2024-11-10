@@ -28,7 +28,11 @@ def runQuery(query:str, args:dict = {}):
     """
     with engine.connect() as conn:
         sql = text(query)
+        final_query = sql.bindparams(**args).compile(bind=engine, compile_kwargs={"literal_binds": True}) 
+        print(final_query)
         results = conn.execute(sql, args)
+        if query.strip().split()[0].lower() in ("delete", "insert", "update"):
+            conn.commit()
         return results
 
 def convert_to_dict(sql_result):

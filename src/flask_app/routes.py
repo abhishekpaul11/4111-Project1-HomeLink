@@ -31,7 +31,7 @@ def auth() -> bool:
         return jsonify({'message': 'Authentication successful','user':json.dumps(result[0])}), 200
     return jsonify({'error': 'Authentication failed'}), 401
 
-@main.route('/tenants/apt', methods=["GET"], endpoint="get_apartment")
+@main.route('/tenants/apt', methods=["GET"], endpoint="get_tenant_apartment")
 def get_tenant_apt():
     sql_result = runQuery("SELECT a.* FROM Users as u, Apartments as a WHERE u.user_id = a.apt_tenant and u.user_id = :user_id", {"user_id": request.args.get('user_id')})
     result = convert_to_dict(sql_result)
@@ -72,3 +72,43 @@ def get_tenant_apt():
     if len(result) == 0:
         return ""
     return result[0]
+
+
+@main.route('/owner/apt', methods=["GET"], endpoint="get_owner_apartment")
+def get_owner_apt():
+    sql_result = runQuery("SELECT * FROM Apartments WHERE apt_owner = :user_id order by apt_id desc", {"user_id": request.args.get('user_id')})
+    result = convert_to_dict(sql_result)
+    if len(result) == 0:
+        return ""
+    return jsonify(result)
+
+@main.route('/owner/create_apartment', methods=["POST"], endpoint="create_apartment")
+def create_apt():
+    apt_address = request.args.get('apt_address')
+    apt_rent = request.args.get('apt_rent')
+    apt_rooms = request.args.get('apt_rooms')
+    suburb = request.args.get('suburb')
+    distance_frm_fin = request.args.get('distance_frm_fin')
+    apt_owner = request.args.get('apt_owner')
+    apt_manager = request.args.get('apt_manager')
+
+    try:
+       runQuery("INSERT INTO Apartments (apt_address, apt_rent, apt_rooms, suburb, distance_frm_fin, apt_owner, apt_manager) VALUES (:apt_address, :apt_rent, :apt_rooms, :suburb, :distance_frm_fin, :apt_owner, :apt_manager)", {"apt_address": apt_address, "apt_rent": apt_rent, "apt_rooms": apt_rooms, "suburb": suburb, "distance_frm_fin": distance_frm_fin, "apt_owner": apt_owner, "apt_manager": apt_manager})
+       return jsonify({'message': 'Apartment created successfully'}), 200
+    except Exception as e:
+        print(e)
+        return jsonify({'error': 'Failed to create apartment'}), 500
+
+@main.route('/owner/delete_apartment', methods=["DELETE"], endpoint="delete_apartment")
+def delete_apt():
+    apt_id = request.args.get('apt_id')
+
+    if not apt_id:
+        return jsonify({'error': 'Apartment ID is required'}), 400
+
+    try:
+        runQuery("DELETE FROM Apartments WHERE apt_id = :apt_id", {"apt_id": apt_id})
+        return jsonify({'message': 'Apartment deleted successfully'}), 200
+    except Exception as e:
+        print(e)
+        return jsonify({'error': 'Failed to delete apartment'}), 500
