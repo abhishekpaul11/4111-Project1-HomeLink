@@ -31,10 +31,44 @@ def auth() -> bool:
         return jsonify({'message': 'Authentication successful','user':json.dumps(result[0])}), 200
     return jsonify({'error': 'Authentication failed'}), 401
 
-@main.route('/tenants/apt')
+@main.route('/tenants/apt', methods=["GET"], endpoint="get_apartment")
 def get_tenant_apt():
     sql_result = runQuery("SELECT a.* FROM Users as u, Apartments as a WHERE u.user_id = a.apt_tenant and u.user_id = :user_id", {"user_id": request.args.get('user_id')})
     result = convert_to_dict(sql_result)
     if len(result) == 0:
         return ""
     return jsonify(result[0])
+
+@main.route('/tenants/available_apts', methods=["GET"], endpoint="get_available_apts")
+def get_tenant_apt():
+    query = '''
+    SELECT apts.*, owners.user_id as owner_id, owners.name as owner_name, owners.phone as owner_phone, owners.email as owner_email, managers.user_id as manager_id, managers.name as manager_name, managers.phone as manager_phone, managers.email as manager_email
+    FROM apartments apts
+             JOIN users owners
+                  ON apts.apt_owner = owners.user_id
+             JOIN users managers
+                  ON apts.apt_manager = managers.user_id
+    WHERE apts.apt_tenant IS NULL
+    ORDER BY apts.suburb, apts.apt_id
+    LIMIT 10
+        OFFSET :offset;
+    '''
+    sql_result = runQuery(query,
+                          {"offset": request.args.get('offset')})
+    result = convert_to_dict(sql_result)
+    if len(result) == 0:
+        return ""
+    return result
+
+@main.route('/tenants/available_apts_count', methods=["GET"], endpoint="get_available_apts_count")
+def get_tenant_apt():
+    query = '''
+    SELECT count(*)
+    FROM apartments apts
+    WHERE apts.apt_tenant IS NULL
+    '''
+    sql_result = runQuery(query)
+    result = convert_to_dict(sql_result)
+    if len(result) == 0:
+        return ""
+    return result[0]

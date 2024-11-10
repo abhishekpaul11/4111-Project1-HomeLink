@@ -5,6 +5,7 @@ import streamlit as st
 from login import show_login
 from dashboard import show_dashboard
 from src.popo.User import User
+from src.streamlit_app.marketplace import show_marketplace
 from src.utils.browserUtils import get_local_storage, set_local_storage
 from streamlit_local_storage import LocalStorage
 
@@ -32,7 +33,7 @@ if not st.session_state['authenticated']:
 def sidebar():
     if st.session_state['authenticated']:
         st.sidebar.title("Navigation")
-        choice = st.sidebar.radio("Go to", ["Dashboard", "Logout"])
+        choice = st.sidebar.radio("Go to", ["Dashboard", "Logout", "Marketplace"])
         
         if choice == "Dashboard":
             st.session_state['current_page'] = "Dashboard"
@@ -44,6 +45,9 @@ def sidebar():
             localS.deleteItem("user")
             time.sleep(0.5)
             st.rerun(scope="app")
+        elif choice == "Marketplace":
+            st.session_state['current_page'] = "Marketplace"
+
 
 # Display the correct page
 def main():
@@ -53,6 +57,8 @@ def main():
         show_login()
     elif st.session_state['current_page'] == "Dashboard":
         show_dashboard()
+    elif st.session_state['current_page'] == "Marketplace":
+        show_marketplace()
 
 # Run the main function
 if __name__ == "__main__":
