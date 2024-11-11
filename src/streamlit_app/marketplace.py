@@ -1,5 +1,5 @@
-from flask import json
 import streamlit as st
+from flask import json
 
 from src.streamlit_app.formatting.marketplace import display_apt
 from src.utils.reqs import sendGetReq
@@ -10,6 +10,10 @@ def display_formatted_info(apartments):
         st.title("Available Apartments")
         for apt in apartments:
             display_apt(apt)
+            if st.button("Make an offer", key=apt['apt_id']):
+                st.session_state['selected_apt'] = apt
+                st.session_state['current_page'] = 'Offers'
+                st.rerun()
     else:
         st.write("No Apartments Available")
 

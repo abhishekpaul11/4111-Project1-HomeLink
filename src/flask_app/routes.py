@@ -112,3 +112,24 @@ def delete_apt():
     except Exception as e:
         print(e)
         return jsonify({'error': 'Failed to delete apartment'}), 500
+
+@main.route('/tenants/create_offer', methods=["POST"], endpoint="create_offer")
+def create_offer():
+    apt_id = request.args.get('apt_id')
+    tenant_id = request.args.get('tenant_id')
+
+    if not apt_id or not tenant_id:
+        return jsonify({'error': 'Missing details'}), 400
+
+    sql_query = '''
+    INSERT INTO offers (offered_price, duration, tenant_id, apt_id)
+    VALUES 
+    (:offered_price, :duration, :tenant_id, :apt_id)
+    '''
+
+    try:
+        runQuery(sql_query, request.args)
+        return jsonify({'message': 'Apartment deleted successfully'}), 200
+    except Exception as e:
+        print(e)
+        return jsonify({'error': 'Failed to delete apartment'}), 500

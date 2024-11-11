@@ -6,6 +6,7 @@ from login import show_login
 from dashboard import show_dashboard
 from src.popo.User import User
 from src.streamlit_app.marketplace import show_marketplace
+from src.streamlit_app.offers import show_offer_form
 from src.utils.browserUtils import get_local_storage, set_local_storage
 from streamlit_local_storage import LocalStorage
 
@@ -33,8 +34,13 @@ if not st.session_state['authenticated']:
 def sidebar():
     if st.session_state['authenticated']:
         st.sidebar.title("Navigation")
-        choice = st.sidebar.radio("Go to", ["Dashboard", "Logout", "Marketplace"])
-        
+
+        if st.session_state['user'].is_tenant:
+            option = ["Dashboard", "Logout", "Marketplace"]
+        else:
+            option = ["Dashboard", "Logout"]
+        choice = st.sidebar.radio("Go to", option)
+
         if choice == "Dashboard":
             st.session_state['current_page'] = "Dashboard"
         elif choice == "Logout":
@@ -51,6 +57,12 @@ def sidebar():
 
 # Display the correct page
 def main():
+
+    # Hack to implement routing from marketplace to offers
+    if st.session_state.current_page == "Offers":
+        show_offer_form()
+        return
+
     sidebar()
     
     if st.session_state['current_page'] == "Login":
