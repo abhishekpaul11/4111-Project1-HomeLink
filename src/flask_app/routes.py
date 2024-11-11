@@ -24,7 +24,7 @@ def auth() -> bool:
         return jsonify({'error': 'Username and password are required'}), 400
 
     # Check if the username and password are correct
-    sql_result = runQuery(f"SELECT * FROM users WHERE name = :name AND password = :password", {"name": username, "password": password})
+    sql_result = runQuery(f"SELECT * FROM users WHERE email = :email AND password = :password", {"email": username, "password": password})
     result = convert_to_dict(sql_result)
 
     if len(result)  == 1:
