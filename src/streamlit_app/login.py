@@ -45,3 +45,7 @@ def show_login():
             st.rerun(scope="app")
         else:
             st.error("Invalid username or password")
+
+    if st.button("Sign Up"):
+        st.session_state['current_page'] = "logon"
+        st.rerun(scope="app")

@@ -5,6 +5,7 @@ import streamlit as st
 from login import show_login
 from dashboard import show_dashboard
 from src.popo.User import User
+from src.streamlit_app.logon import show_logon
 from src.streamlit_app.marketplace import show_marketplace
 from src.streamlit_app.offers import show_offer_form
 from src.streamlit_app.offers_received import show_offers
@@ -75,6 +76,8 @@ def main():
         show_marketplace()
     elif st.session_state['current_page'] == "Offers Received":
         show_offers()
+    elif st.session_state['current_page'] == "logon":
+        show_logon()
 
 
 # Run the main function

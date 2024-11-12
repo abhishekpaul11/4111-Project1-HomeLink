@@ -50,3 +50,4 @@ class UserType(Enum):
     TENANT = "Tenant"
     OWNER = "Owner"
     BROKER = "Broker"
+    REPAIRMEN = "Repairmen"

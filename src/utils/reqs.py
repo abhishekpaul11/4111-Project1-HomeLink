@@ -8,7 +8,7 @@ def sendGetReq(relative_url, params):
     return response
 
 def sendPostReq(relative_url, params, data=None):
-    response = requests.post(url+relative_url, params=params, data=data)
+    response = requests.post(url+relative_url, params=params, json=data)
     return response
 
 def sendDelReq(relative_url, params):

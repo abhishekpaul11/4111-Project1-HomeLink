@@ -204,3 +204,14 @@ def accept_offer():
     except Exception as e:
         print(e)
         return jsonify({'error': 'Failed to accept offer'}), 500
+
+
+@main.route('/user/', methods=["POST"], endpoint="create_user")
+def create_apt():
+    print(request.get_json())
+    try:
+        runQuery("INSERT INTO Users (name, password, email, phone, is_owner, is_broker, is_tenant, is_repairmen, broker_successful_deals) VALUES (:name, :password, :email, :phone, :is_owner, :is_broker, :is_tenant, :is_repairmen, :broker_successful_deals)", request.get_json())
+        return jsonify({'message': 'User created successfully'}), 200
+    except Exception as e:
+        print(e)
+        return jsonify({'error': 'Failed to create user'}), 500
