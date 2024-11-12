@@ -9,7 +9,6 @@ main = Blueprint('main', __name__)
 def get_home():
     data = {
         "message": "Hello from Flask!",
-        "values": [1, 2, 3, 4, 5]
     }
     return jsonify(data)
 
@@ -56,8 +55,6 @@ def get_tenant_apt():
     sql_result = runQuery(query,
                           {"offset": request.args.get('offset')})
     result = convert_to_dict(sql_result)
-    if len(result) == 0:
-        return ""
     return result
 
 @main.route('/tenants/available_apts_count', methods=["GET"], endpoint="get_available_apts_count")
@@ -133,3 +130,70 @@ def create_offer():
     except Exception as e:
         print(e)
         return jsonify({'error': 'Failed to delete apartment'}), 500
+
+
+@main.route('/owner/get_offers', methods=["GET"], endpoint="get_offers")
+def get_offers():
+    query = '''
+    select offers.*
+    from offers
+    inner join
+    apartments
+    on apartments.apt_id = offers.apt_id
+    where apartments.apt_manager = apartments.apt_owner
+    and apartments.apt_owner = :owner_id
+    order by offers.offered_price desc
+    '''
+    sql_result = runQuery(query, {'owner_id': request.args.get('owner_id')})
+    result = convert_to_dict(sql_result)
+    return jsonify(result)
+
+@main.route('/owner/delete_offer', methods=["DELETE"], endpoint="delete_offer")
+def delete_offer():
+    apt_id = request.args.get('apt_id')
+    tenant_id = request.args.get('tenant_id')
+    offer_id = request.args.get('offer_id')
+
+    if not apt_id or not tenant_id or not offer_id:
+        return jsonify({'error': 'Missing details'}), 400
+
+    try:
+        runQuery("DELETE FROM Offers WHERE apt_id = :apt_id and tenant_id = :tenant_id and offer_id = :offer_id",
+                 {'apt_id': apt_id, 'tenant_id': tenant_id, 'offer_id': offer_id})
+        return jsonify({'message': 'Offer deleted successfully'}), 200
+    except Exception as e:
+        print(e)
+        return jsonify({'error': 'Failed to delete offer'}), 500
+
+
+@main.route('/owner/accept_offer', methods=["POST"], endpoint="accept_offer")
+def accept_offer():
+    apt_id = request.args.get('apt_id')
+    tenant_id = request.args.get('tenant_id')
+    rented_date = request.args.get('rented_date')
+    duration = request.args.get('duration')
+    offered_price = request.args.get('offered_price')
+    offer_id = request.args.get('offer_id')
+
+    if not apt_id or not tenant_id or not rented_date or not duration or not offered_price or not offer_id:
+        return jsonify({'error': 'Missing details'}), 400
+
+    sql_query = '''
+    UPDATE apartments
+    SET
+        apt_rent = :offered_price,
+        apt_rented_date = :rented_date,
+        apt_rented_duration = :duration,
+        apt_tenant = :tenant_id
+    WHERE
+        apt_id = :apt_id;
+    '''
+
+    try:
+        runQuery(sql_query, {'apt_id': apt_id, 'tenant_id': tenant_id, 'duration': duration, 'offered_price': offered_price, 'rented_date': rented_date})
+        runQuery("DELETE FROM Offers WHERE apt_id = :apt_id and tenant_id = :tenant_id and offer_id = :offer_id",
+                 {'apt_id': apt_id, 'tenant_id': tenant_id, 'offer_id': offer_id})
+        return jsonify({'message': 'Offer accepted successfully'}), 200
+    except Exception as e:
+        print(e)
+        return jsonify({'error': 'Failed to accept offer'}), 500

@@ -7,6 +7,7 @@ from dashboard import show_dashboard
 from src.popo.User import User
 from src.streamlit_app.marketplace import show_marketplace
 from src.streamlit_app.offers import show_offer_form
+from src.streamlit_app.offers_received import show_offers
 from src.utils.browserUtils import get_local_storage, set_local_storage
 from streamlit_local_storage import LocalStorage
 
@@ -25,7 +26,6 @@ if not st.session_state['authenticated']:
     user_json = localS.getItem("user")
     if user_json:
         user_data = json.loads(user_json)
-        print(user_json)
         user = User(**user_data)
         st.session_state['user'] =user 
         st.session_state['current_page'] = "Dashboard"
@@ -36,9 +36,9 @@ def sidebar():
         st.sidebar.title("Navigation")
 
         if st.session_state['user'].is_tenant:
-            option = ["Dashboard", "Logout", "Marketplace"]
+            option = ["Dashboard", "Marketplace", "Logout"]
         else:
-            option = ["Dashboard", "Logout"]
+            option = ["Dashboard", "Offers", "Logout"]
         choice = st.sidebar.radio("Go to", option)
 
         if choice == "Dashboard":
@@ -53,6 +53,8 @@ def sidebar():
             st.rerun(scope="app")
         elif choice == "Marketplace":
             st.session_state['current_page'] = "Marketplace"
+        elif choice == "Offers":
+            st.session_state['current_page'] = "Offers Received"
 
 
 # Display the correct page
@@ -71,6 +73,9 @@ def main():
         show_dashboard()
     elif st.session_state['current_page'] == "Marketplace":
         show_marketplace()
+    elif st.session_state['current_page'] == "Offers Received":
+        show_offers()
+
 
 # Run the main function
 if __name__ == "__main__":
