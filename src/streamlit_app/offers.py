@@ -14,7 +14,7 @@ def show_offer_form():
         st.title("Enter Offer Details")
 
         with st.form("offer_form"):
-            offered_price = st.number_input("Offered Rent (in dollars)", min_value=0, value=apt['apt_rent'], step=100)
+            offered_price = st.number_input("Offered Rent (in dollars)", min_value=1, value=apt['apt_rent'], step=100)
             duration = st.selectbox("Duration (in months)", range(1, 25))
 
             if st.form_submit_button('Submit Offer'):

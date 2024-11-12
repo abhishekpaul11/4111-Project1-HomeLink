@@ -29,7 +29,7 @@ def show_marketplace():
         st.session_state.offset = 0
 
     if 'total_apts' not in st.session_state:
-        st.session_state.total_apts = 21
+        st.session_state.total_apts = get_apartment_count()['count']
 
     display_formatted_info(get_apartments())
 
