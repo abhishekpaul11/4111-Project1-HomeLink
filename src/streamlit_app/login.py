@@ -26,7 +26,7 @@ def check_login(username, password) -> bool:
 def show_login():
     st.title("Login")
     
-    username = st.text_input("Username")
+    username = st.text_input("Email")
     password = st.text_input("Password", type="password")
     
     if st.button("Login"):

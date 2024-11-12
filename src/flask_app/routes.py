@@ -73,7 +73,15 @@ def get_tenant_apt():
 
 @main.route('/owner/apt', methods=["GET"], endpoint="get_owner_apartment")
 def get_owner_apt():
-    sql_result = runQuery("SELECT * FROM Apartments WHERE apt_owner = :user_id order by apt_id desc", {"user_id": request.args.get('user_id')})
+    sql_result = runQuery("SELECT * FROM Apartments WHERE apt_owner = :user_id order by suburb", {"user_id": request.args.get('user_id')})
+    result = convert_to_dict(sql_result)
+    if len(result) == 0:
+        return ""
+    return jsonify(result)
+
+@main.route('/broker/apt', methods=["GET"], endpoint="get_broker_apartment")
+def get_owner_apt():
+    sql_result = runQuery("SELECT * FROM Apartments WHERE apt_manager = :user_id order by suburb", {"user_id": request.args.get('user_id')})
     result = convert_to_dict(sql_result)
     if len(result) == 0:
         return ""

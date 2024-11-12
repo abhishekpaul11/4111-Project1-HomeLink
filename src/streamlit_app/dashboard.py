@@ -52,14 +52,27 @@ def show_owner_details():
                 st.rerun(scope="show_owner_details")
 
 @st.fragment
+def show_broker_details():
+    user:User = st.session_state['user']
+
+    apartment_sqls:List = json.loads(sendGetReq("/broker/apt", {"user_id": user.user_id}).text)
+    if len(apartment_sqls) == 0:
+        st.text("You do not have any apartments yet")
+    else:
+        st.header("Your Apartments")
+        for apt_sql in apartment_sqls:
+            result:Apartment = Apartment(**apt_sql)
+            result.owner_display(st)
+
+@st.fragment
 def create_apartment_owner():
     with st.form("apartment_form"):
         st.subheader("Add a New Apartment")
         apt_address = st.text_input("Address")
-        apt_rent = st.number_input("Rent", min_value=0)
+        apt_rent = st.number_input("Rent (in $)", min_value=0)
         apt_rooms = st.number_input("Rooms", min_value=1, step=1)
         suburb = st.text_input("Suburb")
-        distance_frm_fin = st.number_input("Distance from Financial District", min_value=0)
+        distance_frm_fin = st.number_input("Distance from Financial District (in kms)", min_value=0)
         apt_owner = st.text_input("Owner ID", value=st.session_state['user'].user_id, disabled=True)  # Default to the logged-in user
         apt_manager = st.text_input("Manager ID")
 
@@ -99,6 +112,8 @@ def show_dashboard():
     st.text("Welcome " + user.name)
     if user_type == "Tenant":
         show_tenant_details()
-    if user_type == "Owner":
+    elif user_type == "Owner":
         create_apartment_owner()
         show_owner_details()
+    elif user_type == "Broker":
+        show_broker_details()
