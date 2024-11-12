@@ -37,7 +37,7 @@ def display_formatted_info(offers):
         st.write("No offers available on the apartments directly managed by you.")
 
 def get_offers():
-    return json.loads(sendGetReq("owner/get_offers", {"owner_id": st.session_state.user.user_id}).text)
+    return json.loads(sendGetReq("user/get_offers", {"user_id": st.session_state.user.user_id}).text)
 
 def show_offers():
     display_formatted_info(get_offers())

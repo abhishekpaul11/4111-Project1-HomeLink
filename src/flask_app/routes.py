@@ -140,7 +140,7 @@ def create_offer():
         return jsonify({'error': 'Failed to delete apartment'}), 500
 
 
-@main.route('/owner/get_offers', methods=["GET"], endpoint="get_offers")
+@main.route('/user/get_offers', methods=["GET"], endpoint="get_offers")
 def get_offers():
     query = '''
     select offers.*
@@ -148,11 +148,10 @@ def get_offers():
     inner join
     apartments
     on apartments.apt_id = offers.apt_id
-    where apartments.apt_manager = apartments.apt_owner
-    and apartments.apt_owner = :owner_id
+    where apartments.apt_manager = :user_id
     order by offers.offered_price desc
     '''
-    sql_result = runQuery(query, {'owner_id': request.args.get('owner_id')})
+    sql_result = runQuery(query, {'user_id': request.args.get('user_id')})
     result = convert_to_dict(sql_result)
     return jsonify(result)
 
