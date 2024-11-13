@@ -82,17 +82,20 @@ def create_apartment_owner():
     with st.form("apartment_form"):
         st.subheader("Add a New Apartment")
         apt_address = st.text_input("Address")
-        apt_rent = st.number_input("Rent (in $)", min_value=0)
+        apt_rent = st.number_input("Rent (in $)", min_value=1)
         apt_rooms = st.number_input("Rooms", min_value=1, step=1)
         suburb = st.text_input("Suburb")
         distance_frm_fin = st.number_input("Distance from Financial District (in kms)", min_value=0)
-        apt_owner = st.text_input("Owner ID", value=st.session_state['user'].user_id, disabled=True)  # Default to the logged-in user
         apt_manager = st.text_input("Manager ID")
 
         # Add a submit button to the form
         submitted = st.form_submit_button("Create Apartment")
 
         if submitted:
+            if len(apt_address) == 0 or len(suburb) == 0 or len(apt_manager) == 0:
+                st.error("Please fill in all fields.")
+                return
+
             # Gather form data into a dictionary
             apartment_data = {
                 "apt_address": apt_address,
@@ -100,8 +103,8 @@ def create_apartment_owner():
                 "apt_rooms": apt_rooms,
                 "suburb": suburb,
                 "distance_frm_fin": distance_frm_fin,
-                "apt_owner": apt_owner,
-                "apt_manager": apt_manager if len(apt_manager)>0 else apt_owner,
+                "apt_owner": st.session_state['user'].user_id,
+                "apt_manager": apt_manager if len(apt_manager)>0 else st.session_state['user'].user_id,
             }
 
             # Send data to the backend
@@ -122,6 +125,11 @@ def show_issue_form(apt_id:int):
         submitted = st.form_submit_button("Report Issue")
 
         if submitted:
+
+            if len(issue) == 0:
+                st.error("Please enter a description.")
+                return
+
             # Gather form data into a dictionary
             issue_data = {
                 "apt_id": apt_id,
@@ -144,7 +152,7 @@ def issues_display(apt_id:int):
     else:
         st.header("Issues")
         for issue in issues:
-            st.text(f"Date: {issue['issue_date']}")
+            st.text(f"Date: {issue['issue_date'][:16]}")
             st.text(f"Description: {issue['issue_description']}")
             st.text("")
 

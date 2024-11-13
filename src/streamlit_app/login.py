@@ -24,11 +24,17 @@ def check_login(username, password) -> bool:
     return (False, None)
 
 def show_login():
-    st.title("Login")
+    st.title("HomeLink")
+    st.subheader("The Modern Housing Rental Marketplace !!!")
+
+    st.write("")
+    st.write("")
+
+    st.header("Login")
     
     username = st.text_input("Email")
     password = st.text_input("Password", type="password")
-    
+
     if st.button("Login"):
         (success, user) = check_login(username, password)
         if success:
@@ -45,6 +51,9 @@ def show_login():
             st.rerun(scope="app")
         else:
             st.error("Invalid username or password")
+
+    st.write("")
+    st.write("")
 
     if st.button("Sign Up"):
         st.session_state['current_page'] = "logon"

@@ -207,11 +207,13 @@ def accept_offer():
 
 
 @main.route('/user/', methods=["POST"], endpoint="create_user")
-def create_apt():
-    print(request.get_json())
+def create_user():
     try:
         runQuery("INSERT INTO Users (name, password, email, phone, is_owner, is_broker, is_tenant, is_repairmen, broker_successful_deals) VALUES (:name, :password, :email, :phone, :is_owner, :is_broker, :is_tenant, :is_repairmen, :broker_successful_deals)", request.get_json())
-        return jsonify({'message': 'User created successfully'}), 200
+        sql_result = runQuery(f"SELECT * FROM users WHERE email = :email AND password = :password",
+                              {"email": request.get_json()['email'], "password": request.get_json()['password']})
+        result = convert_to_dict(sql_result)
+        return jsonify({'message': 'User created successfully', 'user': result[0]}), 200
     except Exception as e:
         print(e)
         return jsonify({'error': 'Failed to create user'}), 500
