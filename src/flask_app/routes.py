@@ -1,6 +1,6 @@
 # flask_app/routes.py
 from flask import Blueprint, json, jsonify, request
-from utils.dbcon import runQuery, convert_to_dict
+from utils.dbcon import Transaction, runQuery, convert_to_dict
 
 main = Blueprint('main', __name__)
 
@@ -215,3 +215,63 @@ def create_apt():
     except Exception as e:
         print(e)
         return jsonify({'error': 'Failed to create user'}), 500
+
+
+@main.route('/tenant/report_issue', methods=["POST"], endpoint="create_issue")
+def create_issue():
+    try:
+        runQuery("INSERT INTO maintenance_issues (apt_id, issue_description, issue_date) VALUES (:apt_id, :issue, :issue_date)", request.get_json())
+        return jsonify({'message': 'Issue reported successfully'}), 200
+    except Exception as e:
+        print(e)
+        return jsonify({'error': 'Failed to report issue'}), 500
+
+@main.route('/tenant/issues', methods=["GET"], endpoint="get_issues")
+def get_issue():
+    sql_result = runQuery("SELECT * FROM maintenance_issues WHERE apt_id = :apt_id", {"apt_id": request.args.get('apt_id')})
+    result = convert_to_dict(sql_result)
+    return jsonify(result)
+
+@main.route('/tenant/appointments', methods=["GET"], endpoint="get_appointments")
+def get_appointments():
+    sql_result = runQuery("SELECT * FROM appointments WHERE apt_id = :apt_id", {"apt_id": request.args.get('apt_id')})
+    result = convert_to_dict(sql_result)
+    return jsonify(result)
+
+@main.route('/repairmen/appointments', methods=["GET"], endpoint="get_repairmen_appointments")
+def get_repairmen_appointments():
+    sql_result = runQuery("SELECT * FROM appointments WHERE repairmen_id = :repairmen_id", {"repairmen_id": request.args.get('repairmen_id')})
+    result = convert_to_dict(sql_result)
+    return jsonify(result)
+
+@main.route('/repairmen/issues', methods=["GET"], endpoint="get_repairmen_issues")
+def get_all_issues():
+    sql_result = runQuery("SELECT * FROM maintenance_issues as mi where not exists (select * from appointments as a where a.issue_id = mi.issue_id ) order by issue_date desc")
+    result = convert_to_dict(sql_result)
+    return jsonify(result)
+
+@main.route('/repairmen/commit', methods=["POST"], endpoint="repairmen_commit")
+def commit_repairmen():
+    try:
+        runQuery("INSERT INTO appointments (apt_id, repairmen_id, issue_id, appointment_date, duration, charges) VALUES (:apt_id, :repairmen_id, :issue_id, :appointment_date, :duration, :charges)", request.get_json())
+        return jsonify({'message': 'Appointment scheduled successfully'}), 200
+    except Exception as e:
+        print(e)
+        return jsonify({'error': 'Failed to schedule appointment'}), 500
+
+@main.route('/tenant/resolve', methods=["DELETE"], endpoint="delete_appointment")
+def delete_appointment():
+    apt_id = request.args.get('apt_id')
+    appointment_id = request.args.get('appointment_id')
+    issue_id = request.args.get('issue_id')
+    if not (apt_id and issue_id and appointment_id):
+        return jsonify({'error': 'Missing details'}), 400
+    try:
+        transaction:Transaction = Transaction()
+        transaction.runQuery("DELETE FROM appointments WHERE apt_id = :apt_id and appointment_id = :appointment_id", {"apt_id": apt_id, "appointment_id": appointment_id})
+        transaction.runQuery("DELETE FROM maintenance_issues WHERE apt_id = :apt_id and issue_id = :issue_id", {"apt_id": apt_id, "issue_id": issue_id})
+        transaction.commit()
+        return jsonify({'message': 'Appointment scheduled successfully'}), 200
+    except Exception as e:
+        print(e)
+        return jsonify({'error': 'Failed to schedule appointment'}), 500

@@ -14,6 +14,17 @@ db_pass = os.getenv("DB_PASS")
 # Connect to SQLite database (or another database by changing the connection string)
 engine = create_engine(f'postgresql://{db_user}:{db_pass}@w4111.cisxo09blonu.us-east-1.rds.amazonaws.com/w4111', echo=True)
 
+class Transaction:
+    def __init__(self):
+        self.conn = engine.connect()
+    
+    def runQuery(self, query:str, args:dict = {}):
+        sql = text(query)
+        results = self.conn.execute(sql, args)
+        return results
+    
+    def commit(self):
+        self.conn.commit()
 
 def runQuery(query:str, args:dict = {}):
     """

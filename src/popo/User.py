@@ -28,6 +28,8 @@ class User:
             return UserType.OWNER
         elif self.is_broker:
             return UserType.BROKER
+        elif self.is_repairmen:
+            return UserType.REPAIRMEN
         else:
             raise ValueError("Invalid user type")
     
