@@ -5,8 +5,10 @@ import streamlit as st
 from login import show_login
 from dashboard import show_dashboard
 from src.popo.User import User
+from src.streamlit_app.chats import show_chats
 from src.streamlit_app.logon import show_logon
 from src.streamlit_app.marketplace import show_marketplace
+from src.streamlit_app.messages import show_messages
 from src.streamlit_app.offers import show_offer_form
 from src.streamlit_app.offers_received import show_offers
 from src.utils.browserUtils import get_local_storage, set_local_storage
@@ -37,9 +39,9 @@ def sidebar():
         st.sidebar.title("Navigation")
 
         if st.session_state['user'].is_tenant:
-            option = ["Dashboard", "Marketplace", "Logout"]
+            option = ["Dashboard", "Marketplace", "Chats", "Logout"]
         else:
-            option = ["Dashboard", "Offers", "Logout"]
+            option = ["Dashboard", "Offers", "Chats", "Logout"]
         choice = st.sidebar.radio("Go to", option)
 
         if choice == "Dashboard":
@@ -56,6 +58,8 @@ def sidebar():
             st.session_state['current_page'] = "Marketplace"
         elif choice == "Offers":
             st.session_state['current_page'] = "Offers Received"
+        elif choice == "Chats":
+            st.session_state['current_page'] = "Chats"
 
 
 # Display the correct page
@@ -64,6 +68,11 @@ def main():
     # Hack to implement routing from marketplace to offers
     if st.session_state.current_page == "Offers":
         show_offer_form()
+        return
+
+    # Hack to implement routing from chats to messages
+    if st.session_state.current_page == "Messages":
+        show_messages()
         return
 
     sidebar()
@@ -78,6 +87,8 @@ def main():
         show_offers()
     elif st.session_state['current_page'] == "logon":
         show_logon()
+    elif st.session_state['current_page'] == "Chats":
+        show_chats()
 
 
 # Run the main function

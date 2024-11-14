@@ -277,3 +277,91 @@ def delete_appointment():
     except Exception as e:
         print(e)
         return jsonify({'error': 'Failed to schedule appointment'}), 500
+
+@main.route('/tenant/get_chats', methods=["GET"], endpoint="get_chats")
+def get_chats():
+    query = '''
+    select *
+    from chat
+    where tenant_id = :tenant_id
+    order by apt_id
+    '''
+    sql_result = runQuery(query, {'tenant_id': request.args.get('tenant_id')})
+    result = convert_to_dict(sql_result)
+    return jsonify(result)
+
+@main.route('/tenant/get_chat_by_apt', methods=["GET"], endpoint="get_chat_by_apt")
+def get_chats():
+    query = '''
+    select *
+    from chat
+    where tenant_id = :tenant_id and apt_id = :apt_id
+    order by apt_id
+    '''
+    sql_result = runQuery(query, request.args)
+    result = convert_to_dict(sql_result)
+    return jsonify(result)
+
+@main.route('/tenant/get_messages', methods=["GET"], endpoint="get_messages")
+def get_messages():
+    query = '''
+    select *
+    from messages
+    where chat_id = :chat_id and apt_id = :apt_id
+    order by sent_time
+    '''
+    sql_result = runQuery(query, request.args)
+    result = convert_to_dict(sql_result)
+    return jsonify(result)
+
+@main.route('/tenant/send_message', methods=["POST"], endpoint="send_message")
+def send_message():
+    apt_id = request.args.get('apt_id')
+    chat_id = request.args.get('chat_id')
+    content = request.args.get('content')
+    is_from_tenant = request.args.get('is_from_tenant')
+
+    if not apt_id or not chat_id or not content or is_from_tenant is None:
+        return jsonify({'error': 'Missing details'}), 400
+
+    sql_query = '''
+    INSERT INTO messages (content, sent_time, apt_id, chat_id, is_from_tenant)
+    VALUES 
+    (:content, NOW(), :apt_id, :chat_id, :is_from_tenant)
+    '''
+
+    try:
+        runQuery(sql_query, {
+            'content': content,
+            'apt_id': apt_id,
+            'chat_id': chat_id,
+            'is_from_tenant': bool(is_from_tenant)
+        })
+        return jsonify({'message': 'Message added successfully'}), 200
+    except Exception as e:
+        print(e)
+        return jsonify({'error': 'Failed to add message'}), 500
+
+@main.route('/tenant/create_chat', methods=["POST"], endpoint="create_chat")
+def create_chat():
+    apt_id = request.args.get('apt_id')
+    tenant_id = request.args.get('tenant_id')
+
+    if not apt_id or not tenant_id:
+        return jsonify({'error': 'Missing details'}), 400
+
+    sql_query = '''
+    INSERT INTO chat (apt_id, tenant_id)
+    VALUES 
+    (:apt_id, :tenant_id)
+    '''
+
+    try:
+        runQuery(sql_query, {
+            'apt_id': apt_id,
+            'tenant_id': tenant_id,
+        })
+        return jsonify({'message': 'Chat created successfully'}), 200
+    except Exception as e:
+        print(e)
+        return jsonify({'error': 'Failed to create chat'}), 500
