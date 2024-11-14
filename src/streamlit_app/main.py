@@ -40,6 +40,8 @@ def sidebar():
 
         if st.session_state['user'].is_tenant:
             option = ["Dashboard", "Marketplace", "Chats", "Logout"]
+        elif st.session_state['user'].is_repairmen:
+            option = ["Dashboard", "Logout"]
         else:
             option = ["Dashboard", "Offers", "Chats", "Logout"]
         choice = st.sidebar.radio("Go to", option)

@@ -177,6 +177,7 @@ def accept_offer():
     duration = request.args.get('duration')
     offered_price = request.args.get('offered_price')
     offer_id = request.args.get('offer_id')
+    broker_id = request.args.get('broker_id')
 
     if not apt_id or not tenant_id or not rented_date or not duration or not offered_price or not offer_id:
         return jsonify({'error': 'Missing details'}), 400
@@ -192,10 +193,18 @@ def accept_offer():
         apt_id = :apt_id;
     '''
 
+    update_broker_successful_deals = '''
+    UPDATE users
+    SET broker_successful_deals = broker_successful_deals + 1
+    WHERE user_id = :broker_id;
+    '''
+
     try:
         runQuery(sql_query, {'apt_id': apt_id, 'tenant_id': tenant_id, 'duration': duration, 'offered_price': offered_price, 'rented_date': rented_date})
         runQuery("DELETE FROM Offers WHERE apt_id = :apt_id or tenant_id = :tenant_id",
                  {'apt_id': apt_id, 'tenant_id': tenant_id})
+        if broker_id:
+            runQuery(update_broker_successful_deals, {'broker_id': broker_id})
         return jsonify({'message': 'Offer accepted successfully'}), 200
     except Exception as e:
         print(e)

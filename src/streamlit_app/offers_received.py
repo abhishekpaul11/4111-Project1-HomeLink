@@ -29,6 +29,8 @@ def display_formatted_info(offers):
             with col1:
                 if st.button("Accept Offer", key=str(offer['offer_id'])+'_accept'):
                     offer['rented_date'] = datetime.now().strftime("%B %d, %Y")
+                    if st.session_state.user.is_broker:
+                        offer['broker_id'] = st.session_state.user.user_id
 
                     response = sendPostReq("owner/accept_offer", offer)
                     if response.status_code == 200:

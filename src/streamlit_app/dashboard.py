@@ -207,10 +207,10 @@ def active_issues():
         for issue in issues:
             st.text(f"Date: {issue['issue_date']}")
             st.text(f"Description: {issue['issue_description']}")
-            appointment_date = st.date_input("Appointment Date", key=str(issue['issue_id'])+"date")
-            duration = st.number_input("duration(in hours): ", key=str(issue['issue_id'])+"duration")
-            charge = st.number_input("charges: ", disabled=True, value=50*duration, key=str(issue['issue_id'])+"charge")
-            if st.button(f"commit", key = str(issue['issue_id'])+"commit"):
+            appointment_date = st.date_input("Appointment Date", key=str(issue['issue_id'])+"date", min_value=datetime.date.today())
+            duration = st.number_input("Duration(in hours): ", key=str(issue['issue_id'])+"duration", step = 0.5, min_value = float(0.0))
+            charge = st.number_input("Charges(in dollars): ", disabled=True, value=28*duration, key=str(issue['issue_id'])+"charge")
+            if st.button(f"Commit", key = str(issue['issue_id'])+"commit"):
                 response = sendPostReq("/repairmen/commit", {}, {
                     "apt_id": issue['apt_id'],
                     "issue_id": issue['issue_id'],
@@ -221,6 +221,7 @@ def active_issues():
                 })
                 if response.status_code == 200:
                     st.success("Appointment scheduled successfully!")
+                    st.rerun()
                 else:
                     st.error("Failed to schedule appointment.")
             st.text("")
