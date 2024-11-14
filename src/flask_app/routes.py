@@ -198,8 +198,8 @@ def accept_offer():
 
     try:
         runQuery(sql_query, {'apt_id': apt_id, 'tenant_id': tenant_id, 'duration': duration, 'offered_price': offered_price, 'rented_date': rented_date})
-        runQuery("DELETE FROM Offers WHERE apt_id = :apt_id and tenant_id = :tenant_id and offer_id = :offer_id",
-                 {'apt_id': apt_id, 'tenant_id': tenant_id, 'offer_id': offer_id})
+        runQuery("DELETE FROM Offers WHERE apt_id = :apt_id",
+                 {'apt_id': apt_id})
         return jsonify({'message': 'Offer accepted successfully'}), 200
     except Exception as e:
         print(e)
@@ -278,8 +278,8 @@ def delete_appointment():
         print(e)
         return jsonify({'error': 'Failed to schedule appointment'}), 500
 
-@main.route('/tenant/get_chats', methods=["GET"], endpoint="get_chats")
-def get_chats():
+@main.route('/tenant/get_chats', methods=["GET"], endpoint="get_tenant_chats")
+def get_tenant_chats():
     query = '''
     select *
     from chat
@@ -287,6 +287,21 @@ def get_chats():
     order by apt_id
     '''
     sql_result = runQuery(query, {'tenant_id': request.args.get('tenant_id')})
+    result = convert_to_dict(sql_result)
+    return jsonify(result)
+
+@main.route('/manager/get_chats', methods=["GET"], endpoint="get_manager_chats")
+def get_manager_chats():
+    query = '''
+    select *
+    from chat
+    inner join 
+    apartments as apt
+    on chat.apt_id = apt.apt_id
+    where apt.apt_manager = :manager_id
+    order by chat.apt_id, chat.tenant_id
+    '''
+    sql_result = runQuery(query, {'manager_id': request.args.get('manager_id')})
     result = convert_to_dict(sql_result)
     return jsonify(result)
 
@@ -335,7 +350,7 @@ def send_message():
             'content': content,
             'apt_id': apt_id,
             'chat_id': chat_id,
-            'is_from_tenant': bool(is_from_tenant)
+            'is_from_tenant': is_from_tenant
         })
         return jsonify({'message': 'Message added successfully'}), 200
     except Exception as e:

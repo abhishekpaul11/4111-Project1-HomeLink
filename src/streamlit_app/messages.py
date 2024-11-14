@@ -9,20 +9,34 @@ def add_tenant_message(message):
         st.html(f"<span class='chat-human'></span>")
         st.write(message)
 
-    st.html(
-        """
-            <style>
-                .stChatMessage:has(.chat-human) {
-                    flex-direction: row-reverse;
-                    text-align: right;
-                }
-            </style>
-    """
-    )
+    if st.session_state.user.is_tenant:
+        st.html(
+            """
+                <style>
+                    .stChatMessage:has(.chat-human) {
+                        flex-direction: row-reverse;
+                        text-align: right;
+                    }
+                </style>
+            """
+        )
 
 def add_apartment_message(message):
     with st.chat_message(avatar='🏠', name='user'):
+        st.html(f"<span class='chat-user'></span>")
         st.write(message)
+
+    if not st.session_state.user.is_tenant:
+        st.html(
+            """
+                <style>
+                    .stChatMessage:has(.chat-user) {
+                        flex-direction: row-reverse;
+                        text-align: right;
+                    }
+                </style>
+            """
+        )
 
 def fetch_messages():
     return json.loads(sendGetReq("tenant/get_messages",
@@ -38,6 +52,7 @@ def show_messages():
     chat = st.session_state.current_chat
 
     st.title(f'Apartment {chat["apt_id"]}')
+    if not st.session_state.user.is_tenant: st.header(f'Tenant {chat["tenant_id"]}')
 
     if messages:
         for message in messages:
@@ -53,7 +68,7 @@ def show_messages():
             "apt_id": chat['apt_id'],
             "chat_id": chat['chat_id'],
             "content": prompt,
-            "is_from_tenant": True,
+            "is_from_tenant": st.session_state.user.is_tenant
         }
 
         response = sendPostReq("tenant/send_message", message_data)
