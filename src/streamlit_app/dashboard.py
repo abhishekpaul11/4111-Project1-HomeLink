@@ -82,21 +82,39 @@ def show_broker_details():
 @st.fragment
 def create_apartment_owner():
     with st.form("apartment_form"):
+
+        brokers = json.loads(sendGetReq('owner/get_brokers').text)
+
         st.subheader("Add a New Apartment")
         apt_address = st.text_input("Address")
         apt_rent = st.number_input("Rent (in $)", min_value=1)
         apt_rooms = st.number_input("Rooms", min_value=1, step=1)
         suburb = st.text_input("Suburb")
         distance_frm_fin = st.number_input("Distance from Financial District (in kms)", min_value=0)
-        apt_manager = st.text_input("Manager ID")
 
-        # Add a submit button to the form
+        broker_options = ['Choose a Broker']
+        if len(brokers) > 0: broker_options.append('I\'ll manage it myself')
+
+        for broker in brokers:
+            broker_options.append(f'{broker['user_id']}. {broker["name"]}: {broker["broker_successful_deals"]} past deals closed')
+
+        if len(broker_options) > 1:
+            selected_option = st.selectbox("Choose a broker to manage this property on your behalf", broker_options)
+
         submitted = st.form_submit_button("Create Apartment")
 
         if submitted:
-            if len(apt_address) == 0 or len(suburb) == 0 or len(apt_manager) == 0:
+            if len(apt_address) == 0 or len(suburb) == 0 or (len(broker_options) > 1 and selected_option == 'Choose a Broker'):
                 st.error("Please fill in all fields.")
                 return
+
+            if len(broker_options) > 1:
+                if selected_option == 'I\'ll manage it myself':
+                    apt_broker_id = st.session_state['user'].user_id
+                else:
+                    apt_broker_id = selected_option.split('.')[0]
+            else:
+                apt_broker_id = st.session_state['user'].user_id
 
             # Gather form data into a dictionary
             apartment_data = {
@@ -106,7 +124,7 @@ def create_apartment_owner():
                 "suburb": suburb,
                 "distance_frm_fin": distance_frm_fin,
                 "apt_owner": st.session_state['user'].user_id,
-                "apt_manager": apt_manager if len(apt_manager)>0 else st.session_state['user'].user_id,
+                "apt_manager": apt_broker_id,
             }
 
             # Send data to the backend
@@ -114,6 +132,7 @@ def create_apartment_owner():
 
             if response.status_code == 200:
                 st.success("Apartment created successfully!")
+                st.rerun()
             else:
                 st.error("Failed to create apartment.")
 

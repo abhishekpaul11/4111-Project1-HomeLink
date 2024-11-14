@@ -70,6 +70,11 @@ def get_tenant_apt_count():
         return ""
     return result[0]
 
+@main.route('/owner/get_brokers', methods=["GET"], endpoint="get_brokers")
+def get_brokers():
+    sql_result = runQuery("SELECT * FROM Users WHERE is_broker = True order by broker_successful_deals desc, name")
+    result = convert_to_dict(sql_result)
+    return jsonify(result)
 
 @main.route('/owner/apt', methods=["GET"], endpoint="get_owner_apartment")
 def get_owner_apt():
