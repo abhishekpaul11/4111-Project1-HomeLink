@@ -10,7 +10,19 @@ from src.utils.reqs import sendGetReq, sendDelReq, sendPostReq
 def display_formatted_info(offers):
     if offers:
         st.title("Offer(s) Received")
+        title = ''
+        subtitle = ''
+
         for offer in offers:
+            if title != f'Apartment {offer["apt_id"]}':
+                title = f'Apartment {offer["apt_id"]}'
+                st.header(title)
+                st.write(offer['apt_address'])
+
+            if subtitle != f'Tenant {offer["tenant_id"]}':
+                subtitle = f'Tenant {offer["tenant_id"]}'
+                st.subheader(subtitle)
+
             display_offer(offer)
             col1, col2 = st.columns(2)
 

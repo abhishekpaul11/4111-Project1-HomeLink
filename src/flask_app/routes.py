@@ -58,7 +58,7 @@ def get_tenant_apt():
     return result
 
 @main.route('/tenants/available_apts_count', methods=["GET"], endpoint="get_available_apts_count")
-def get_tenant_apt():
+def get_tenant_apt_count():
     query = '''
     SELECT count(*)
     FROM apartments apts
@@ -75,16 +75,12 @@ def get_tenant_apt():
 def get_owner_apt():
     sql_result = runQuery("SELECT * FROM Apartments WHERE apt_owner = :user_id order by suburb", {"user_id": request.args.get('user_id')})
     result = convert_to_dict(sql_result)
-    if len(result) == 0:
-        return ""
     return jsonify(result)
 
 @main.route('/broker/apt', methods=["GET"], endpoint="get_broker_apartment")
 def get_owner_apt():
     sql_result = runQuery("SELECT * FROM Apartments WHERE apt_manager = :user_id order by suburb", {"user_id": request.args.get('user_id')})
     result = convert_to_dict(sql_result)
-    if len(result) == 0:
-        return ""
     return jsonify(result)
 
 @main.route('/owner/create_apartment', methods=["POST"], endpoint="create_apartment")
@@ -143,13 +139,13 @@ def create_offer():
 @main.route('/user/get_offers', methods=["GET"], endpoint="get_offers")
 def get_offers():
     query = '''
-    select offers.*
+    select offers.*, apartments.apt_address
     from offers
     inner join
     apartments
     on apartments.apt_id = offers.apt_id
     where apartments.apt_manager = :user_id
-    order by offers.offered_price desc
+    order by apartments.apt_id, offers.tenant_id, offers.offered_price desc, offers.duration desc
     '''
     sql_result = runQuery(query, {'user_id': request.args.get('user_id')})
     result = convert_to_dict(sql_result)
@@ -198,8 +194,8 @@ def accept_offer():
 
     try:
         runQuery(sql_query, {'apt_id': apt_id, 'tenant_id': tenant_id, 'duration': duration, 'offered_price': offered_price, 'rented_date': rented_date})
-        runQuery("DELETE FROM Offers WHERE apt_id = :apt_id",
-                 {'apt_id': apt_id})
+        runQuery("DELETE FROM Offers WHERE apt_id = :apt_id or tenant_id = :tenant_id",
+                 {'apt_id': apt_id, 'tenant_id': tenant_id})
         return jsonify({'message': 'Offer accepted successfully'}), 200
     except Exception as e:
         print(e)
@@ -283,8 +279,11 @@ def get_tenant_chats():
     query = '''
     select *
     from chat
-    where tenant_id = :tenant_id
-    order by apt_id
+    inner join 
+    apartments as apt
+    on chat.apt_id = apt.apt_id
+    where chat.tenant_id = :tenant_id
+    order by chat.apt_id
     '''
     sql_result = runQuery(query, {'tenant_id': request.args.get('tenant_id')})
     result = convert_to_dict(sql_result)
@@ -310,8 +309,11 @@ def get_chats():
     query = '''
     select *
     from chat
-    where tenant_id = :tenant_id and apt_id = :apt_id
-    order by apt_id
+    inner join 
+    apartments as apt
+    on chat.apt_id = apt.apt_id
+    where chat.tenant_id = :tenant_id and chat.apt_id = :apt_id
+    order by chat.apt_id
     '''
     sql_result = runQuery(query, request.args)
     result = convert_to_dict(sql_result)

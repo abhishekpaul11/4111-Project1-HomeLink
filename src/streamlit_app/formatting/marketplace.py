@@ -4,7 +4,6 @@ import streamlit as st
 
 apartment_info_displayable = {
     'apt_address': 'ADDRESS',
-    'apt_id': 'APARTMENT ID',
     'apt_manager': None,
     'apt_owner': None,
     'apt_rent': 'RENT',
@@ -15,13 +14,7 @@ apartment_info_displayable = {
     'owner_id': None,
     'manager_id': None,
     'distance_frm_fin': 'DISTANCE FROM FINANCIAL DISTRICT',
-    'suburb': 'SUBURB',
-    'owner_name': 'NAME',
-    'owner_phone': 'PHONE',
-    'owner_email': 'EMAIL',
-    'manager_name': 'NAME',
-    'manager_phone': 'PHONE',
-    'manager_email': 'EMAIL'
+    'suburb': 'SUBURB'
 }
 
 def format_value(value):

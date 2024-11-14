@@ -52,6 +52,7 @@ def show_messages():
     chat = st.session_state.current_chat
 
     st.title(f'Apartment {chat["apt_id"]}')
+    st.write(chat['apt_address'])
     if not st.session_state.user.is_tenant: st.header(f'Tenant {chat["tenant_id"]}')
 
     if messages:

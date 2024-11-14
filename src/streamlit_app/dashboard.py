@@ -21,8 +21,10 @@ def show_tenant_details():
     
     apartment_sql = sendGetReq("tenants/apt", {"user_id": user.user_id}).text
     if apartment_sql == "":
+        st.session_state['is_lease_on'] = False
         st.text("You do not have an apartment yet")
     else:
+        st.session_state['is_lease_on'] = True
         result:Apartment = Apartment(**json.loads(apartment_sql))
         st.subheader("Your Apartment Details")
         st.text(f"Apartment ID: {result.apt_id}")

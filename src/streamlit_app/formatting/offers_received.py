@@ -4,8 +4,6 @@ import streamlit as st
 offer_info_displayable = {
     'offer_id': 'OFFER ID',
     'offered_price': 'OFFERED PRICE',
-    'tenant_id': 'TENANT ID',
-    'apt_id': 'APARTMENT ID',
     'duration': 'DURATION'
 }
 

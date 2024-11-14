@@ -9,12 +9,13 @@ def display_formatted_info(apartments):
     if apartments:
         st.title("Available Apartments")
         for apt in apartments:
+            st.header(f'Apartment {apt['apt_id']}')
             display_apt(apt)
 
             col1, col2 = st.columns(2)
 
             with col1:
-                if st.button("Make an offer", key=str(apt['apt_id'])+'_offer'):
+                if not st.session_state['is_lease_on'] and st.button("Make an offer", key=str(apt['apt_id'])+'_offer'):
                     st.session_state['selected_apt'] = apt
                     st.session_state['current_page'] = 'Offers'
                     st.rerun()

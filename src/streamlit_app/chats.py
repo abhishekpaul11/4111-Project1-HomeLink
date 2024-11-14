@@ -30,11 +30,15 @@ def show_chats():
     for chat in chats:
 
         if st.session_state.user.is_tenant:
-            button_text = f'Apartment {chat['apt_id']}'
+            button_text = f'Apartment {chat['apt_id']} ({chat["apt_address"]})'
         else:
             if title != f'Apartment {chat["apt_id"]}':
                 title = f'Apartment {chat["apt_id"]}'
                 st.header(title)
+                st.write(chat["apt_address"])
+                st.write("")
+                st.write("")
+
             button_text = f'Tenant {chat["tenant_id"]}'
 
         button = st.button(button_text, key=str(chat['apt_id']) + str(chat['tenant_id']))
