@@ -1,5 +1,4 @@
 from sqlalchemy import create_engine, text
-from utils.tableDefs import users
 
 from dotenv import load_dotenv
 import os
@@ -60,13 +59,3 @@ def convert_to_dict(sql_result):
 
     # Convert each row to a dictionary
     return [dict(row._mapping) for row in raw_results]
-
-def test():
-    query = "select * from users limit 5"
-    result = runQuery(query)
-    for row in result:
-        print((row[users["name"]], row[users["password"]]))
-# ('Ella Mitchell', 'SunnyMeadow72')
-# ('James Cox', 'OceanBreeze73')
-# ('Olivia Diaz', 'MorningMist74')
-# ('Benjamin Cooper', 'TwilightEchoes75')

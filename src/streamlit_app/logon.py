@@ -39,7 +39,6 @@ def show_logon():
 
         if response.status_code == 200:
             st.success("Account created successfully!")
-            print(response.json()['user'])
             st.session_state['authenticated'] = True
             st.session_state['current_page'] = "Dashboard"
             st.session_state['just_logged_in'] = True
