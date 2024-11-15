@@ -2,6 +2,7 @@ import json
 
 import streamlit as st
 from src.utils.reqs import sendGetReq, sendPostReq
+from streamlit_autorefresh import st_autorefresh
 
 
 def add_tenant_message(message):
@@ -43,6 +44,8 @@ def fetch_messages():
                                  {"chat_id": st.session_state.current_chat['chat_id'], "apt_id": st.session_state.current_chat['apt_id']}).text)
 
 def show_messages():
+
+    st_autorefresh(interval=2000, key="auto_refresh")
 
     if st.button("Home"):
         st.session_state['current_page'] = 'Dashboard'
