@@ -52,6 +52,7 @@ def sidebar():
             st.session_state['authenticated'] = False
             st.session_state['current_page'] = "Login"
             st.session_state['username'] = None
+            st.session_state['offset'] = 0
 
             localS.deleteItem("user")
             time.sleep(0.5)
