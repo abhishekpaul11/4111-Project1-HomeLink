@@ -5,6 +5,7 @@ from flask import json
 import streamlit as st
 from src.popo.Appointment import Appointment
 from src.streamlit_app.formatting.apartments import display_apartment
+from src.streamlit_app.formatting.apartments_broker import display_apartment_for_broker
 from src.streamlit_app.formatting.apartments_tenant import display_apartment_for_tenant
 from src.utils.reqs import sendDelReq, sendGetReq, sendPostReq
 from src.popo.Apartment import Apartment
@@ -63,10 +64,9 @@ def show_broker_details():
     if len(apartment_sqls) == 0:
         st.text("You do not have any apartments yet")
     else:
-        st.header("Your Apartments")
+        st.header("My Managed Apartments")
         for apt_sql in apartment_sqls:
-            result:Apartment = Apartment(**apt_sql)
-            result.owner_display(st)
+            display_apartment_for_broker(apt_sql)
 
 @st.fragment
 def create_apartment_owner():

@@ -96,7 +96,11 @@ def get_owner_apt():
 
 @main.route('/broker/apt', methods=["GET"], endpoint="get_broker_apartment")
 def get_owner_apt():
-    sql_result = runQuery("SELECT * FROM Apartments WHERE apt_manager = :user_id order by suburb", {"user_id": request.args.get('user_id')})
+    sql_result = runQuery(
+        "SELECT Apartments.*, Users.name as owner_name, Users.email as owner_email, Users.phone as owner_phone, tenants.name as tenant_name, tenants.email as tenant_email, tenants.phone as tenant_phone"
+        " FROM Apartments INNER JOIN Users on Apartments.apt_owner = Users.user_id"
+        " LEFT JOIN Users tenants on Apartments.apt_tenant = tenants.user_id"
+        " WHERE apt_manager = :user_id order by suburb", {"user_id": request.args.get('user_id')})
     result = convert_to_dict(sql_result)
     return jsonify(result)
 
