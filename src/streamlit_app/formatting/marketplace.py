@@ -6,7 +6,7 @@ apartment_info_displayable = {
     'apt_address': 'ADDRESS',
     'apt_manager': None,
     'apt_owner': None,
-    'apt_rent': 'RENT',
+    'apt_rent': 'MONTHLY RENT',
     'apt_rented_date': None,
     'apt_rented_duration': None,
     'apt_rooms': 'NUMBER OF ROOMS',

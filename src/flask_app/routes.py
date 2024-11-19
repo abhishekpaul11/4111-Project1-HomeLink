@@ -32,7 +32,16 @@ def auth() -> bool:
 
 @main.route('/tenants/apt', methods=["GET"], endpoint="get_tenant_apartment")
 def get_tenant_apt():
-    sql_result = runQuery("SELECT a.* FROM Users as u, Apartments as a WHERE u.user_id = a.apt_tenant and u.user_id = :user_id", {"user_id": request.args.get('user_id')})
+    query = '''
+    SELECT apts.*, owners.user_id as owner_id, owners.name as owner_name, owners.phone as owner_phone, owners.email as owner_email, managers.user_id as manager_id, managers.name as manager_name, managers.phone as manager_phone, managers.email as manager_email
+    FROM apartments apts
+             JOIN users owners
+                  ON apts.apt_owner = owners.user_id
+             JOIN users managers
+                  ON apts.apt_manager = managers.user_id
+    WHERE apts.apt_tenant = :user_id
+    '''
+    sql_result = runQuery(query, {"user_id": request.args.get('user_id')})
     result = convert_to_dict(sql_result)
     if len(result) == 0:
         return ""
@@ -78,7 +87,10 @@ def get_brokers():
 
 @main.route('/owner/apt', methods=["GET"], endpoint="get_owner_apartment")
 def get_owner_apt():
-    sql_result = runQuery("SELECT * FROM Apartments WHERE apt_owner = :user_id order by suburb", {"user_id": request.args.get('user_id')})
+    sql_result = runQuery("SELECT Apartments.*, Users.name as manager_name, Users.email as manager_email, Users.phone as manager_phone, tenants.name as tenant_name, tenants.email as tenant_email, tenants.phone as tenant_phone"
+                          " FROM Apartments INNER JOIN Users on Apartments.apt_manager = Users.user_id"
+                          " LEFT JOIN Users tenants on Apartments.apt_tenant = tenants.user_id"
+                          " WHERE apt_owner = :user_id order by suburb", {"user_id": request.args.get('user_id')})
     result = convert_to_dict(sql_result)
     return jsonify(result)
 

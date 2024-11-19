@@ -4,6 +4,8 @@ from typing import List
 from flask import json
 import streamlit as st
 from src.popo.Appointment import Appointment
+from src.streamlit_app.formatting.apartments import display_apartment
+from src.streamlit_app.formatting.apartments_tenant import display_apartment_for_tenant
 from src.utils.reqs import sendDelReq, sendGetReq, sendPostReq
 from src.popo.Apartment import Apartment
 
@@ -18,52 +20,39 @@ def delete_apartment(apt_id: int):
 
 def show_tenant_details():
     user:User = st.session_state['user']
-    
+
+    st.header("My Apartment Details")
     apartment_sql = sendGetReq("tenants/apt", {"user_id": user.user_id}).text
     if apartment_sql == "":
         st.session_state['is_lease_on'] = False
         st.text("You do not have an apartment yet")
     else:
         st.session_state['is_lease_on'] = True
-        result:Apartment = Apartment(**json.loads(apartment_sql))
-        st.subheader("Your Apartment Details")
-        st.text(f"Apartment ID: {result.apt_id}")
-        st.text(f"Address: {result.apt_address}")
-        st.text(f"Rent: {result.apt_rent}")
-        st.text(f"Rooms: {result.apt_rooms}")
-        st.text(f"Suburb: {result.suburb}")
-        st.text(f"Distance from Financial District: {result.distance_frm_fin}")
-        st.text(f"Owner ID: {result.apt_owner}")
-        st.text(f"Manager ID: {result.apt_manager}")
-        st.text(f"Tenant ID: {result.apt_tenant}")
-        st.text(f"Rented Date: {result.apt_rented_date}")
-        st.text(f"Rented Duration: {result.apt_rented_duration} months")
+        apartment_sql = json.loads(apartment_sql)
+        display_apartment_for_tenant(apartment_sql)
 
-        # Show issues
         st.subheader("Reported Issues")
-        issues_display(result.apt_id)
+        issues_display(apartment_sql['apt_id'])
 
         st.subheader("Active Appointments")
-        scheduled_appointments(result.apt_id)
+        scheduled_appointments(apartment_sql['apt_id'])
 
         st.subheader("Create Issues")
-        # show issue creation form
-        show_issue_form(result.apt_id)
+        show_issue_form(apartment_sql['apt_id'])
 
 @st.fragment
 def show_owner_details():
     user:User = st.session_state['user']
 
+    st.header("My Apartments")
     apartment_sqls:List = json.loads(sendGetReq("/owner/apt", {"user_id": user.user_id}).text)
     if len(apartment_sqls) == 0:
         st.text("You do not have any apartments yet")
     else:
-        st.header("Your Apartments")
         for apt_sql in apartment_sqls:
-            result:Apartment = Apartment(**apt_sql)
-            result.owner_display(st)
-            if st.button(f"Delete Apartment {result.apt_id}"):
-                delete_apartment(result.apt_id)
+            display_apartment(apt_sql)
+            if st.button(f"Delete Apartment {apt_sql['apt_id']}"):
+                delete_apartment(apt_sql['apt_id'])
                 st.rerun(scope="show_owner_details")
 
 @st.fragment
@@ -171,7 +160,6 @@ def issues_display(apt_id:int):
     if len(issues) == 0:
         st.text("No issues reported yet")
     else:
-        st.header("Issues")
         for issue in issues:
             st.text(f"Date: {issue['issue_date'][:16]}")
             st.text(f"Description: {issue['issue_description']}")
@@ -182,7 +170,6 @@ def scheduled_appointments(apt_id:int):
     if len(appointments) == 0:
         st.text("No appointments scheduled yet")
     else:
-        st.header("Scheduled Appointments")
         for appointment in appointments:
             appointment = Appointment(**appointment)
             appointment.display_appointment(st)
@@ -252,7 +239,9 @@ def show_dashboard():
     if ('just_logged_in' in st.session_state) and st.session_state['just_logged_in']:
         st.success("Login successful!")
         st.session_state['just_logged_in'] = False
-    st.text("Welcome " + user.name)
+    st.subheader("Welcome " + user.name + " !!!")
+    st.write("")
+
     if user_type == UserType.TENANT:
         show_tenant_details()
     elif user_type == UserType.OWNER:
