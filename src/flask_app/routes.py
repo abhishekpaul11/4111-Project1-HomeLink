@@ -256,25 +256,38 @@ def create_issue():
 
 @main.route('/tenant/issues', methods=["GET"], endpoint="get_issues")
 def get_issue():
-    sql_result = runQuery("SELECT * FROM maintenance_issues WHERE apt_id = :apt_id", {"apt_id": request.args.get('apt_id')})
+    sql_result = runQuery("SELECT * FROM maintenance_issues WHERE apt_id = :apt_id order by issue_date desc", {"apt_id": request.args.get('apt_id')})
     result = convert_to_dict(sql_result)
     return jsonify(result)
 
 @main.route('/tenant/appointments', methods=["GET"], endpoint="get_appointments")
 def get_appointments():
-    sql_result = runQuery("SELECT * FROM appointments WHERE apt_id = :apt_id", {"apt_id": request.args.get('apt_id')})
+    sql_result = runQuery("SELECT appointments.*, users.name repairmen_name, users.phone as repairmen_phone, users.email as repairmen_email,"
+                          " maintenance_issues.issue_description as issue_description"
+                          " FROM appointments inner join users on appointments.repairmen_id = users.user_id"
+                          " inner join maintenance_issues on appointments.issue_id = maintenance_issues.issue_id"
+                          " WHERE appointments.apt_id = :apt_id order by appointments.appointment_date", {"apt_id": request.args.get('apt_id')})
     result = convert_to_dict(sql_result)
     return jsonify(result)
 
 @main.route('/repairmen/appointments', methods=["GET"], endpoint="get_repairmen_appointments")
 def get_repairmen_appointments():
-    sql_result = runQuery("SELECT * FROM appointments WHERE repairmen_id = :repairmen_id", {"repairmen_id": request.args.get('repairmen_id')})
+    sql_result = runQuery("SELECT appointments.*, users.name tenant_name, users.phone as tenant_phone, users.email as tenant_email,"
+                          " maintenance_issues.issue_description as issue_description, apartments.apt_id as apartment_id, apartments.apt_address as apartment_address, apartments.suburb as apartment_suburb "
+                          " FROM appointments inner join apartments on appointments.apt_id = apartments.apt_id"
+                          " inner join users on apartments.apt_tenant = users.user_id"
+                          " inner join maintenance_issues on appointments.issue_id = maintenance_issues.issue_id"
+                          " WHERE appointments.repairmen_id = :repairmen_id", {"repairmen_id": request.args.get('repairmen_id')})
     result = convert_to_dict(sql_result)
     return jsonify(result)
 
 @main.route('/repairmen/issues', methods=["GET"], endpoint="get_repairmen_issues")
 def get_all_issues():
-    sql_result = runQuery("SELECT * FROM maintenance_issues as mi where not exists (select * from appointments as a where a.issue_id = mi.issue_id ) order by issue_date desc")
+    sql_result = runQuery("SELECT mi.*, users.name tenant_name, users.phone as tenant_phone, users.email as tenant_email, apartments.apt_id as apartment_id, apartments.apt_address as apartment_address, apartments.suburb as apartment_suburb"
+                          " FROM maintenance_issues as mi "
+                          "inner join apartments on apartments.apt_id = mi.apt_id"
+                          " inner join users on apartments.apt_tenant = users.user_id "
+                          "where not exists (select * from appointments as a where a.issue_id = mi.issue_id ) order by issue_date desc")
     result = convert_to_dict(sql_result)
     return jsonify(result)
 

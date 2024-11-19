@@ -3,12 +3,14 @@ import datetime
 from typing import List
 from flask import json
 import streamlit as st
-from src.popo.Appointment import Appointment
 from src.streamlit_app.formatting.apartments import display_apartment
 from src.streamlit_app.formatting.apartments_broker import display_apartment_for_broker
 from src.streamlit_app.formatting.apartments_tenant import display_apartment_for_tenant
+from src.streamlit_app.formatting.appointments import display_appointment
+from src.streamlit_app.formatting.appointments_repairmen import display_appointment_for_repairmen
+from src.streamlit_app.formatting.issues import display_issue
+from src.streamlit_app.formatting.issues_repairmen import display_issue_for_repairmen
 from src.utils.reqs import sendDelReq, sendGetReq, sendPostReq
-from src.popo.Apartment import Apartment
 
 from src.popo.User import User, UserType
 
@@ -31,14 +33,20 @@ def show_tenant_details():
         st.session_state['is_lease_on'] = True
         apartment_sql = json.loads(apartment_sql)
         display_apartment_for_tenant(apartment_sql)
+        st.write("")
+        st.write("")
 
-        st.subheader("Reported Issues")
+        st.header("Reported Issues")
         issues_display(apartment_sql['apt_id'])
+        st.write("")
+        st.write("")
 
-        st.subheader("Active Appointments")
+        st.header("Active Appointments")
         scheduled_appointments(apartment_sql['apt_id'])
+        st.write("")
+        st.write("")
 
-        st.subheader("Create Issues")
+        st.header("Create An Issue")
         show_issue_form(apartment_sql['apt_id'])
 
 @st.fragment
@@ -128,8 +136,8 @@ def create_apartment_owner():
 
 def show_issue_form(apt_id:int):
     with st.form("issue_form"):
-        st.subheader("Report an Issue")
-        issue = st.text_area("Issue Description")
+        st.subheader("Issue Description")
+        issue = st.text_area(label="desc", label_visibility='hidden')
 
         # Add a submit button to the form
         submitted = st.form_submit_button("Report Issue")
@@ -152,6 +160,7 @@ def show_issue_form(apt_id:int):
 
             if response.status_code == 200:
                 st.success("Issue reported successfully!")
+                st.rerun()
             else:
                 st.error("Failed to report issue.")
 
@@ -161,9 +170,7 @@ def issues_display(apt_id:int):
         st.text("No issues reported yet")
     else:
         for issue in issues:
-            st.text(f"Date: {issue['issue_date'][:16]}")
-            st.text(f"Description: {issue['issue_description']}")
-            st.text("")
+            display_issue(issue)
 
 def scheduled_appointments(apt_id:int):
     appointments: List = json.loads(sendGetReq("/tenant/appointments", {"apt_id": apt_id}).text)
@@ -171,16 +178,16 @@ def scheduled_appointments(apt_id:int):
         st.text("No appointments scheduled yet")
     else:
         for appointment in appointments:
-            appointment = Appointment(**appointment)
-            appointment.display_appointment(st)
-            if st.button(f"resolve", key = str(appointment.appointment_id)+"resolve"):
+            display_appointment(appointment)
+            if st.button(f"Resolve", key = str(appointment['appointment_id'])+"_resolve"):
                 response = sendDelReq("/tenant/resolve", {
                     "apt_id": apt_id,
-                    "appointment_id": appointment.appointment_id,
-                    "issue_id": appointment.issue_id,
+                    "appointment_id": appointment['appointment_id'],
+                    "issue_id": appointment['issue_id'],
                 })
                 if response.status_code == 200:
                     st.success("Appointment resolved successfully!")
+                    st.rerun()
                 else:
                     st.error("Failed to resolve appointment.")
 
@@ -188,18 +195,17 @@ def scheduled_repairmen_appointments():
     user:User = st.session_state['user']
     if user.get_user_type() != UserType.REPAIRMEN:
         return
-    appointments: List = json.loads(sendGetReq("/repairmen/appointments", {"repairmen_id": user.user_id}).text)
+    appointments = json.loads(sendGetReq("/repairmen/appointments", {"repairmen_id": user.user_id}).text)
     if len(appointments) == 0:
         st.text("No appointments scheduled yet")
     else:
         for appointment in appointments:
-            appointment = Appointment(**appointment)
-            appointment.display_appointment(st)
+            display_appointment_for_repairmen(appointment)
 
 def show_repairmen_details():
-    st.subheader("Your Appointments")
+    st.header("My Appointments")
     scheduled_repairmen_appointments()
-    st.subheader("Active Issues")
+    st.header("Active Issues")
     active_issues()
 
 def active_issues():
@@ -211,11 +217,10 @@ def active_issues():
         st.text("No active issues")
     else:
         for issue in issues:
-            st.text(f"Date: {issue['issue_date']}")
-            st.text(f"Description: {issue['issue_description']}")
-            appointment_date = st.date_input("Appointment Date", key=str(issue['issue_id'])+"date", min_value=datetime.date.today())
-            duration = st.number_input("Duration(in hours): ", key=str(issue['issue_id'])+"duration", step = 0.5, min_value = float(0.0))
-            charge = st.number_input("Charges(in dollars): ", disabled=True, value=28*duration, key=str(issue['issue_id'])+"charge")
+            display_issue_for_repairmen(issue)
+            appointment_date = st.date_input("When can you work on this issue?", key=str(issue['issue_id'])+"date", min_value=datetime.date.today())
+            duration = st.number_input("How long (in hours) will it take for you to fix it?", key=str(issue['issue_id'])+"duration", step = 0.5, min_value = float(0.5))
+            charge = st.number_input("How much can you charge (in dollars) for it?", disabled=True, value=28*duration, key=str(issue['issue_id'])+"charge")
             if st.button(f"Commit", key = str(issue['issue_id'])+"commit"):
                 response = sendPostReq("/repairmen/commit", {}, {
                     "apt_id": issue['apt_id'],
